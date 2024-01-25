@@ -2,10 +2,12 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
-let post = {
-  id: 1,
-  name: "Hello World",
-};
+let posts = [
+  {
+    id: 1,
+    name: "first post",
+  },
+];
 
 export const postRouter = createTRPCRouter({
   hello: publicProcedure
@@ -20,13 +22,19 @@ export const postRouter = createTRPCRouter({
     .input(z.object({ name: z.string().min(1) }))
     .mutation(async ({ input }) => {
       // simulate a slow db call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      post = { id: post.id + 1, name: input.name };
-      return post;
+      posts.push({ id: Math.floor(Math.random() * 100), name: input.name });
+      return posts;
     }),
 
   getLatest: publicProcedure.query(() => {
-    return post;
+    return posts;
+  }),
+
+  delete: publicProcedure.input(z.number()).mutation(async ({ input }) => {
+    posts = posts.filter((post) => post.id !== input);
+    console.log("delete id", input);
+    return posts;
   }),
 });
